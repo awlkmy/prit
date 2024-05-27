@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+	<style>
+        .navbar-custom {
+            position: -webkit-sticky; /* Для поддержки браузеров на основе WebKit */
+            position: sticky; /* Зафиксированная позиция */
+            top: 0; /* Отступ от верхнего края */
+            z-index: 1000; /* Устанавливаем высокий индекс для шапки */
+            background-color: #343a40;
+        }
+        body {
+        	background-color: #505050;
+        }
+        .search-container {
+            width: 90%; /* Ширина 100% */
+            padding: 20px; /* Поля */
+            text-align: center; /* Выравнивание текста по центру */
+            margin: 20px auto;
+        }
+        .search-container input[type="text"] {
+            width: 80%; /* Ширина поля ввода */
+            padding: 10px; /* Поля внутри поля ввода */
+            border-radius: 15px; /* Закругляем углы */
+            background-color: #505050;
+            display: inline-block;
+            color: #ffffff;
+        }
+        .search-container button {
+        	display: inline-block;
+        	margin: 0;
+        	background-color: #505050;
+        	border: none;
+          width: 5%; /* Ширина поля ввода */
+        }
+        .search-container input[type="text"]::placeholder {
+            color: #ffffff; /* Цвет текста placeholder */
+        }
+        .container-border {
+            border: 2px solid #ffffff; /* Белая рамка */
+            padding: 20px; /* Поля */
+            display: block;
+            background-color: #303030;
+            width: 90%;
+            height: 75vh;
+            margin: 20px auto;
+        }
+        .message{
+          min-height: 50px;
+          max-width: 70%; /* Максимальная ширина сообщения */
+          width:  max-content;
+          height: auto;
+          text-align: center;
+          color: #ffffff; /* Белый цвет текста */
+          border-radius: 10px; /* Закругление углов */
+          padding: 10px 20px; /* Поля внутри блока */
+          display: flex;
+
+          word-wrap: break-word;
+          margin: 10px;
+ /* Выравниваем сообщения справа */
+        }
+        .user-message {
+          background-color: #007bff; /* Синий цвет фона */
+          /* min-width: 150px; */
+          justify-content: flex-end;
+          margin-right: 0;
+          margin-left: auto;
+        }
+        .bot-message {
+          background-color: #505050;
+          justify-content: flex-start;
+          margin-left: 0;
+        }
+
+    </style>
+	<title>Document</title>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Логотип</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">Главная</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">О нас</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Услуги</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="#">Вход</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container container-border" id = "chat">
+  <div class="message bot-message">Здравствуйте, я чат-бот, отвечающий на вопросы.</div>
+</div>
+
+<form id="myForm" class="search-container">
+    <input id="textInput" type="text" class="form-control" placeholder="Введите запрос">
+    <button type="submit">
+    	<svg xmlns="http://www.w3.org/2000/svg" color="#ffffff" width="45" height="45" fill="currentColor" class="bi bi-arrow-right-circle-fill" viewBox="0 0 16 16">
+  <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0M4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z"/>
+		</svg>
+</button>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $("#myForm").on("submit", function(event) {
+        event.preventDefault(); // Предотвращаем отправку формы
+        var userMessage = $('<div></div>').addClass('message user-message');
+        var inputText = $("#textInput").val(); // Получаем текст из поля ввода
+
+        // Устанавливаем текст в блок user-message
+        userMessage.text(inputText);
+
+        // Очищаем текстовое поле
+        $("#textInput").val("");
+        var chat = $('#chat');
+        chat.append(userMessage);
+
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'ajax_response' %}",
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}', // CSRF токен для защиты запроса
+                'user-message': inputText
+            },
+            success: function(response) {
+                var botMessage = $('<div></div>').addClass('message bot-message');
+                botMessage.text(response.message);
+                chat.append(botMessage);
+            },
+            error: function(xhr, status, error) {
+                $('#response').text('An error occurred: ' + error);
+            }
+        });
+
+    });
+});
+</script>
+
+</body>
+</html>
